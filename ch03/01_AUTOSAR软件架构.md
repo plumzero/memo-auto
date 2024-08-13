@@ -33,7 +33,20 @@ AUTOSAR 架构的分层式设计，用于支持完整的软件和硬件模块的
 
 2.端口
 
-端口用来和其他 SWC 通信。通信内容分为 Data Elements 与 Operations。其中，Data Elements 用发送端——接收端(Sensor/Receiver)通信方式，Operations 用客户端——服务器(Client/Server)通信方式。如下图所示。
+端口(Ports)是 SWC 和 SWC 做接口(interface)通信使用，或者 SWC 通过 RTE 和 BSW 做接口(interface)通信使用。
+
+Ports 主要分为 5 种类型:
+- Send/Receiver(Receiver): 发送/接收接口（接收接口）
+- Send/Receiver(Send): 发送/接收接口（发送接口）
+- Client/Server(Server): 客户/服务接口（服务接口）
+- Client/Server(Client): 客户/服务接口（客户接口）
+- Send/Receiver(Send & Receiver): 发送/接收接口(发送且接收接口)
+
+其中以可分类为: R-Ports、P-Ports 和 PR-Ports。或者又可以分为: Send/Receiver(S/R)接口和 Client/Server(C/S) 接口。而 S/R 接口是用来传输数据(Data Elements)的；C/S 接口是用来执行操作(Operations)的。
+- S/R 接口作用： 传输数据。通过 RTE 传输数据，并且通过 RTE 管理数据的传输，避免数据出问题（例如同时调用同一数据时可能出错）。
+- C/S 接口作用： 提供操作。就是 Server 提供函数供 Client 调用。
+
+如下图所示。
 
 ![](img/SWC通信方式.jpg)
 
@@ -49,7 +62,7 @@ AUTOSAR 架构的分层式设计，用于支持完整的软件和硬件模块的
 
 3.可运行实体
 
-可运行实体(Runnable Entities)简称 Runnables。可运行实体包含实际实现的函数，可以是具体的逻辑算法或是实际操作。可运行实体由 RTE 周期性或是事件触发调用，如接收到数据。如下图所示。
+可运行实体(Runnable Entities)简称 Runnables，就是 SWC 中的函数，可以是具体的逻辑算法或是实际操作。在 AutoSAR 架构在被 DaVinci 软件生成的时候，Runnable 是空函数，需要手动添加代码来实现其实际的功能。Runnable 可以被触发，比如被定时器触发、被操作调用触发或者被接受数据触发等。如下图所示。
 
 ![](img/可运行实体.jpg)
 
@@ -70,12 +83,9 @@ SWC 之间的通信是通过调用 RTE API 函数而非直接实现的，均由 
 VFB 是对 AUTOSAR 所有通信机制的抽象。利用 VFB，开发者将软件组件的通信细节抽象，只需要通过 AUTOSAR 所定义的接口进行描述，即能够实现软件组件与其他组件以及硬件之间的通信，甚至是 ECU 内部或者是与其他 ECU 之间的数据传输。
 
 RTE 提供了三种接口描述。
-
-1.Standardized Interface(标准接口): 标准接口是在 AUTOSAR 规范中被标准化的接口，但并未使用 AUTOSAR 接口技术，标准接口通常被用于某个 ECU 内部的软件模块之间的通信，不能用于网络通信。
-
-2.Standardized AUTOSAR Interface(标准AUTOSAR接口): 标准 AUTOSAR 接口是在 AUTOSAR 规范中使用 AUTOSAR 接口技术标准化的接口，这种接口的语法和语义都被规定好了，通常在 AUTOSAR 服务中使用，是基础软件服务提供给应用程序的。
-
-3.AUTOSAR Interface(AUTOSAR接口): AUTOSAR 接口定义了软件模块和 BSW 模块(仅仅是 I/O 抽象和复杂驱动)之间交互的方式，AUTOSAR 接口以 Port 的形式出现，将 ECU 内部的通信和网络通信使用的接口进行了统一。
+- 1.Standardized Interface(标准接口): 标准接口是在 AUTOSAR 规范中被标准化的接口，但并未使用 AUTOSAR 接口技术，标准接口通常被用于某个 ECU 内部的软件模块之间的通信，不能用于网络通信。
+- 2.Standardized AUTOSAR Interface(标准AUTOSAR接口): 标准 AUTOSAR 接口是在 AUTOSAR 规范中使用 AUTOSAR 接口技术标准化的接口，这种接口的语法和语义都被规定好了，通常在 AUTOSAR 服务中使用，是基础软件服务提供给应用程序的。
+- 3.AUTOSAR Interface(AUTOSAR接口): AUTOSAR 接口定义了软件模块和 BSW 模块(仅仅是 I/O 抽象和复杂驱动)之间交互的方式，AUTOSAR 接口以 Port 的形式出现，将 ECU 内部的通信和网络通信使用的接口进行了统一。
 
 ### Basic Software(基础软件)
 
@@ -116,3 +126,51 @@ BSW 调度器是系统服务的一部分，它向所有层的所有模块提供�
 3.模式管理
 
 模式管理包括 3 个基本软件模块: ①ECU状态管理器，控制 AUTOSAR BSW 模块的启动阶段，包括 OS 的启动；②通信管理器，负责网络资源管理；③看门狗管理器，基于应用软件的生存状态触发看门狗。
+
+
+### RTE 与 runnable 的关系
+
+RTE 提供了 SWC 的运行环境。作用如下:
+- 提供跨 ECU/ECU内部 的通信管理。
+- 提供对 runnable 的管理功能（触发、唤醒等，简单说就是 runnable 需要映射到 Task 上运行，而这个映射就是通过 RTE 具体实现的）。
+- RTE 就是 VFB（虚拟功能总线）的具体实现。
+
+RTE 对 Runnables 的运行支撑包括:
+- 通过 RTE 给 runnable 提供触发事件。
+- 通过 RTE 给 runnable 提供所需资源。就是接口通信（Ports），将 runnable 需要的一些资源通过接口传输给它。
+- 将 BSW 和 SWC 做隔绝。因此 OS 和 runnables 也被隔绝了，runnable 的运行条件由 RTE 提供，不能由 OS 直接提供。
+
+Runnables 的触发条件。RTE 给 runnables 提供触发条件，也就是 runnable 在设计的时候，需要有触发条件进行运行。触发条件就是一些特定的事件，AutoSAR 中主要规定了以下一些触发条件:
+- 初始化事件： 初始化自动触发
+- 定时器事件： 给一个周期定时器，时间到了就触发
+- 接收数据事件（S/R）： Receiver Port 一旦收到数据，就触发
+- 接收数据错误事件（S/R）
+- 数据发送完成事件（S/R）： Send Port 发送完成，就触发
+- 操作调用事件（C/S)： 当调用到了该函数的时候
+- 异步服务返回事件（C/S)： C/S 可以在异步下运行，如果以异步方式调用一个 Server 函数，那么该被调用函数会作为一个线程和当前的运行程序并行运行，当被调用函数运行结束返回的时候，这时触发异步服务返回事件。
+- 模式切换事件
+- 模式切换应答事件
+
+### RTE 对 Ports 的支撑
+
+#### S/R 接口的不同方式
+
+RTE 对 Runnable 的调用方式
+- 直接调用
+- 缓存调用
+- 队列调用
+
+> 跨 ECU 的方式
+
+假如是跨 ECU 的数据传输。那么在 runnable 中使用 `Rte_Wirte_<port>_<Data>()` 这样的函数后，会需要走 runnable(ECU1) -> RTE(ECU1) -> BSW(ECU1) -> 外部总线 -> BSW(ECU2) -> RTE(ECU2) -> runnable(ECU2) 。
+
+这里列出用于 COM 传输的两个函数名:
+``` c
+  Com_SendSignal()
+  Com_ReceiveSignal()
+```
+
+#### C/S 接口的不同方式
+
+- 同步调用
+- 异步调用
