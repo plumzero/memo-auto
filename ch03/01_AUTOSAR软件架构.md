@@ -36,15 +36,15 @@ AUTOSAR 架构的分层式设计，用于支持完整的软件和硬件模块的
 端口(Ports)是 SWC 和 SWC 做接口(interface)通信使用，或者 SWC 通过 RTE 和 BSW 做接口(interface)通信使用。
 
 Ports 主要分为 5 种类型:
-- Send/Receiver(Receiver): 发送/接收接口（接收接口）
-- Send/Receiver(Send): 发送/接收接口（发送接口）
-- Client/Server(Server): 客户/服务接口（服务接口）
-- Client/Server(Client): 客户/服务接口（客户接口）
+- Send/Receiver(Receiver): 发送/接收接口(接收接口)
+- Send/Receiver(Send): 发送/接收接口(发送接口)
+- Client/Server(Server): 客户/服务接口(服务接口)
+- Client/Server(Client): 客户/服务接口(客户接口)
 - Send/Receiver(Send & Receiver): 发送/接收接口(发送且接收接口)
 
 其中以可分类为: R-Ports、P-Ports 和 PR-Ports。或者又可以分为: Send/Receiver(S/R)接口和 Client/Server(C/S) 接口。而 S/R 接口是用来传输数据(Data Elements)的；C/S 接口是用来执行操作(Operations)的。
-- S/R 接口作用： 传输数据。通过 RTE 传输数据，并且通过 RTE 管理数据的传输，避免数据出问题（例如同时调用同一数据时可能出错）。
-- C/S 接口作用： 提供操作。就是 Server 提供函数供 Client 调用。
+- S/R 接口作用: 传输数据。通过 RTE 传输数据，并且通过 RTE 管理数据的传输，避免数据出问题(例如同时调用同一数据时可能出错)。
+- C/S 接口作用: 提供操作。就是 Server 提供函数供 Client 调用。
 
 如下图所示。
 
@@ -93,7 +93,7 @@ RTE 提供了三种接口描述。
 
 ![](img/BSW的结构组成.jpg)
 
-服务层(Service Layer)，这一层基础软件提供了汽车 ECU 非应用相关的服务，包括操作系统(OS)、网络通信、内存管理(NVRAM)、诊断(UDS、故障管理等)、ECU 状态管理模块等，它们对 ECU 的应用层功能提供辅助支持。该层软件在不领域的 ECU 中也非常相似，例如不同的 ECU 中的 OS 的任务周期和优先级不同，不同的 ECU 中的 NVRAM 的分区不同，存储的内容不同。
+服务层(Service Layer)，这一层基础软件提供了汽车 ECU 非应用相关的服务，包括操作系统(OS)、网络通信、内存管理(NVRAM)、诊断(UDS、故障管理等)、ECU 状态管理模块等，它们对 ECU 的应用层功能提供辅助支持。该层软件在不同领域的 ECU 中也非常相似，例如不同的 ECU 中的 OS 的任务周期和优先级不同，不同的 ECU 中的 NVRAM 的分区不同，存储的内容不同。
 
 ECU抽象层(ECU Abstract Layer)，这一层软件提供了 ECU 应用相关的服务，它是对一个 ECU 的抽象，包括 ECU 的所有输入和输出，例如数模转换(AD)、PWM等。该层软件直接实现了 ECU 的应用层功能，可以读取传感器状态，可以控制执行器输出。不同领域的 ECU 会有很大的不同。
 
@@ -132,22 +132,22 @@ BSW 调度器是系统服务的一部分，它向所有层的所有模块提供�
 
 RTE 提供了 SWC 的运行环境。作用如下:
 - 提供跨 ECU/ECU内部 的通信管理。
-- 提供对 runnable 的管理功能（触发、唤醒等，简单说就是 runnable 需要映射到 Task 上运行，而这个映射就是通过 RTE 具体实现的）。
-- RTE 就是 VFB（虚拟功能总线）的具体实现。
+- 提供对 runnable 的管理功能(触发、唤醒等，简单说就是 runnable 需要映射到 Task 上运行，而这个映射就是通过 RTE 具体实现的)。
+- RTE 就是 VFB(虚拟功能总线)的具体实现。
 
 RTE 对 Runnables 的运行支撑包括:
 - 通过 RTE 给 runnable 提供触发事件。
-- 通过 RTE 给 runnable 提供所需资源。就是接口通信（Ports），将 runnable 需要的一些资源通过接口传输给它。
+- 通过 RTE 给 runnable 提供所需资源。就是接口通信(Ports)，将 runnable 需要的一些资源通过接口传输给它。
 - 将 BSW 和 SWC 做隔绝。因此 OS 和 runnables 也被隔绝了，runnable 的运行条件由 RTE 提供，不能由 OS 直接提供。
 
 Runnables 的触发条件。RTE 给 runnables 提供触发条件，也就是 runnable 在设计的时候，需要有触发条件进行运行。触发条件就是一些特定的事件，AutoSAR 中主要规定了以下一些触发条件:
-- 初始化事件： 初始化自动触发
-- 定时器事件： 给一个周期定时器，时间到了就触发
-- 接收数据事件（S/R）： Receiver Port 一旦收到数据，就触发
-- 接收数据错误事件（S/R）
-- 数据发送完成事件（S/R）： Send Port 发送完成，就触发
-- 操作调用事件（C/S)： 当调用到了该函数的时候
-- 异步服务返回事件（C/S)： C/S 可以在异步下运行，如果以异步方式调用一个 Server 函数，那么该被调用函数会作为一个线程和当前的运行程序并行运行，当被调用函数运行结束返回的时候，这时触发异步服务返回事件。
+- 初始化事件: 初始化自动触发
+- 定时器事件: 给一个周期定时器，时间到了就触发
+- 接收数据事件(S/R): Receiver Port 一旦收到数据，就触发
+- 接收数据错误事件(S/R)
+- 数据发送完成事件(S/R): Send Port 发送完成，就触发
+- 操作调用事件(C/S): 当调用到了该函数的时候
+- 异步服务返回事件(C/S): C/S 可以在异步下运行，如果以异步方式调用一个 Server 函数，那么该被调用函数会作为一个线程和当前的运行程序并行运行，当被调用函数运行结束返回的时候，这时触发异步服务返回事件。
 - 模式切换事件
 - 模式切换应答事件
 
